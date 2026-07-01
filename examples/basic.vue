@@ -30,7 +30,7 @@ const tracks: WaveformPlaylistTrackInput[] = [
 	{
 		url: '/audio/episode-1.mp3',
 		title: 'Episode 1',
-		subtitle: 'The Pilot',
+		artist: 'The Pilot',
 		artwork: '/img/ep1.jpg',
 		duration: '42:10',
 		chapters: [
@@ -39,7 +39,7 @@ const tracks: WaveformPlaylistTrackInput[] = [
 			{ time: '38:00', label: 'Wrap-up' },
 		],
 	},
-	{ url: '/audio/episode-2.mp3', title: 'Episode 2', subtitle: 'Deep dive' },
+	{ url: '/audio/episode-2.mp3', title: 'Episode 2', artist: 'Deep dive' },
 ];
 </script>
 
