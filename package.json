@@ -1,6 +1,6 @@
 {
   "name": "@arraypress/waveform-playlist-vue",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Vue 3 component wrapper for @arraypress/waveform-playlist — a declarative `tracks` array, typed props for every option, an exposed imperative API for playlist + chapter navigation, and SSR-safe mounting.",
   "type": "module",
   "main": "./dist/index.cjs",
