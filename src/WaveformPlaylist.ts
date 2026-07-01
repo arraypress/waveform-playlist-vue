@@ -153,12 +153,6 @@ function buildPlaylistOptions(p: Record<string, unknown>): Record<string, unknow
 	set('colorPreset', p.colorPreset);
 	set('waveformColor', p.waveformColor);
 	set('progressColor', p.progressColor);
-	set('buttonColor', p.buttonColor);
-	set('buttonHoverColor', p.buttonHoverColor);
-	set('textColor', p.textColor);
-	set('textSecondaryColor', p.textSecondaryColor);
-	set('backgroundColor', p.backgroundColor);
-	set('borderColor', p.borderColor);
 
 	/* Playback controls */
 	set('playbackRate', p.playbackRate);
@@ -294,12 +288,6 @@ export const WaveformPlaylist = defineComponent({
 		colorPreset: { type: String as PropType<ColorPreset>, default: undefined },
 		waveformColor: { type: [String, Array] as PropType<string | string[]>, default: undefined },
 		progressColor: { type: [String, Array] as PropType<string | string[]>, default: undefined },
-		buttonColor: { type: String, default: undefined },
-		buttonHoverColor: { type: String, default: undefined },
-		textColor: { type: String, default: undefined },
-		textSecondaryColor: { type: String, default: undefined },
-		backgroundColor: { type: String, default: undefined },
-		borderColor: { type: String, default: undefined },
 
 		// ── Playback controls ──────────────────────────────────────────
 		playbackRate: { type: Number, default: undefined },
@@ -429,12 +417,6 @@ export const WaveformPlaylist = defineComponent({
 				props.colorPreset,
 				props.waveformColor,
 				props.progressColor,
-				props.buttonColor,
-				props.buttonHoverColor,
-				props.textColor,
-				props.textSecondaryColor,
-				props.backgroundColor,
-				props.borderColor,
 				props.playbackRate,
 				props.showPlaybackSpeed,
 				props.playbackRates,
