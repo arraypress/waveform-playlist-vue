@@ -172,9 +172,14 @@ function buildPlaylistOptions(p: Record<string, unknown>): Record<string, unknow
 	/* Accessibility */
 	set('accessibleSeek', p.accessibleSeek);
 	set('seekLabel', p.seekLabel);
+	set('seekValueText', p.seekValueText);
+	set('playPauseLabel', p.playPauseLabel);
+	set('speedLabel', p.speedLabel);
+	set('artworkAlt', p.artworkAlt);
 
 	/* Error UI */
 	set('errorText', p.errorText);
+	set('unknownTrackText', p.unknownTrackText);
 
 	/* Markers (the per-player render toggle; per-track marker data comes
 	 * from each track's `markers`, rendered into `data-markers`). */
@@ -307,9 +312,14 @@ export const WaveformPlaylist = defineComponent({
 		// ── Accessibility ──────────────────────────────────────────────
 		accessibleSeek: { type: Boolean, default: undefined },
 		seekLabel: { type: String, default: undefined },
+		seekValueText: { type: String, default: undefined },
+		playPauseLabel: { type: String, default: undefined },
+		speedLabel: { type: String, default: undefined },
+		artworkAlt: { type: String, default: undefined },
 
 		// ── Error UI ───────────────────────────────────────────────────
 		errorText: { type: String, default: undefined },
+		unknownTrackText: { type: String, default: undefined },
 
 		// ── Markers (per-player render toggle) ─────────────────────────
 		showMarkers: { type: Boolean, default: undefined },
@@ -430,7 +440,12 @@ export const WaveformPlaylist = defineComponent({
 				props.buttonStyle,
 				props.accessibleSeek,
 				props.seekLabel,
+				props.seekValueText,
+				props.playPauseLabel,
+				props.speedLabel,
+				props.artworkAlt,
 				props.errorText,
+				props.unknownTrackText,
 				props.showMarkers,
 				props.autoplay,
 				props.singlePlay,
