@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.4.0] — 2026-08-07
+
+### Added
+
+- Forward the core player's `crossOrigin` option to the embedded player.
+  Added as a runtime `props` declaration (`PropType<AudioCrossOrigin>`),
+  set in the options builder, and added to the remount watcher.
+  This option shipped across the rest of the waveform family in
+  `@arraypress/waveform-player@1.23.0` but was missed in the playlist
+  wrappers, so it was previously accepted by the types and silently
+  dropped at runtime. Requires `@arraypress/waveform-player@^1.23.0`
+  and `@arraypress/waveform-playlist@^1.7.2` (the version that began
+  forwarding it to each track's player).
+
 ## [0.3.0] — 2026-07-05
 
 ### Added

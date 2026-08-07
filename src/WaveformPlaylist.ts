@@ -85,6 +85,7 @@ import {
 // component export. This is the core library's playlist class type.
 import type { WaveformPlaylist as WaveformPlaylistInstance } from '@arraypress/waveform-playlist';
 import type {
+	AudioCrossOrigin,
 	AudioMode,
 	AudioPreload,
 	ButtonAlign,
@@ -140,6 +141,7 @@ function buildPlaylistOptions(p: Record<string, unknown>): Record<string, unknow
 	 * markers/waveform) is NOT here; it comes from the rendered markup. */
 	set('audioMode', p.audioMode);
 	set('preload', p.preload);
+	set('crossOrigin', p.crossOrigin);
 
 	/* Waveform visualisation */
 	set('waveformStyle', p.waveformStyle);
@@ -280,6 +282,7 @@ export const WaveformPlaylist = defineComponent({
 		// ── Audio source behaviour (forwarded to the embedded player) ──
 		audioMode: { type: String as PropType<AudioMode>, default: undefined },
 		preload: { type: String as PropType<AudioPreload>, default: undefined },
+		crossOrigin: { type: String as PropType<AudioCrossOrigin>, default: undefined },
 
 		// ── Waveform visualisation ─────────────────────────────────────
 		waveformStyle: { type: String as PropType<WaveformStyle>, default: undefined },
@@ -418,6 +421,7 @@ export const WaveformPlaylist = defineComponent({
 				props.showPlayState,
 				props.audioMode,
 				props.preload,
+				props.crossOrigin,
 				props.waveformStyle,
 				props.height,
 				props.samples,

@@ -90,11 +90,25 @@ describe('WaveformPlaylist (Vue)', () => {
 		expect('tracks' in instances[0].opts).toBe(false);
 	});
 
+	it('forwards the audio-loading options (preload, crossOrigin)', async () => {
+		// crossOrigin needs a runtime `props` declaration, not just a TS type —
+		// without one Vue treats it as a fallthrough attr and it never lands here.
+		mount(WaveformPlaylist, {
+			props: { tracks: tracksA, preload: 'metadata', crossOrigin: 'anonymous' },
+		});
+		await flushPromises();
+		expect(instances[0].opts).toMatchObject({
+			preload: 'metadata',
+			crossOrigin: 'anonymous',
+		});
+	});
+
 	it('omits absent boolean props so the core defaults win', async () => {
 		mount(WaveformPlaylist, { props: { tracks: tracksA } });
 		await flushPromises();
 		expect('continuous' in instances[0].opts).toBe(false);
 		expect('showControls' in instances[0].opts).toBe(false);
+		expect('crossOrigin' in instances[0].opts).toBe(false);
 	});
 
 	it('forwards explicit boolean props (including false)', async () => {
