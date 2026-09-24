@@ -73,8 +73,10 @@
 import {
 	defineComponent,
 	h,
+	normalizeClass,
 	onBeforeUnmount,
 	onMounted,
+	onUpdated,
 	ref,
 	watch,
 	type PropType,
@@ -264,6 +266,33 @@ function renderTracks(tracks: WaveformPlaylistTrackInput[]): VNode[] {
 }
 
 /**
+ * Split a class string into its tokens (empty strings dropped).
+ *
+ * @param value - A space-separated class list.
+ * @returns The individual class names.
+ */
+function classTokens(value: string): string[] {
+	return value.split(/\s+/).filter(Boolean);
+}
+
+/**
+ * Bring the host's *user* classes (`wfp-host` + the fall-through `class`)
+ * up to date without touching anything else on the element: drop the
+ * tokens this component applied last time that are no longer wanted, then
+ * add every wanted token (`classList.add` is idempotent).
+ *
+ * @param el - The host element.
+ * @param applied - Tokens this component applied on the previous sync.
+ * @param wanted - Tokens it wants now.
+ */
+function syncHostClasses(el: HTMLElement, applied: readonly string[], wanted: readonly string[]): void {
+	for (const token of applied) {
+		if (!wanted.includes(token)) el.classList.remove(token);
+	}
+	if (wanted.length) el.classList.add(...wanted);
+}
+
+/**
  * `WaveformPlaylist` — Vue 3 component wrapping
  * `@arraypress/waveform-playlist`.
  *
@@ -273,11 +302,16 @@ function renderTracks(tracks: WaveformPlaylistTrackInput[]): VNode[] {
  * (`selectTrack`, `nextTrack`, `previousTrack`, `seekToChapter`, …) is
  * exposed through a template `ref`.
  *
- * `class`, `style`, and `id` fall through to the host element via Vue's
- * attribute inheritance — the base class `wfp-host` is always applied.
+ * `class`, `style`, `id` and any other attribute are forwarded to the host
+ * element — the base class `wfp-host` is always applied. (Forwarded by
+ * hand rather than by attribute inheritance; see "Host `class` handling"
+ * in `setup`.)
  */
 export const WaveformPlaylist = defineComponent({
 	name: 'WaveformPlaylist',
+	/* Attributes are forwarded by hand in the render function so `class`
+	 * can be kept out of Vue's patching — see "Host `class` handling". */
+	inheritAttrs: false,
 	props: {
 		// ── Tracks (required) ──────────────────────────────────────────
 		/** The playlist's tracks, rendered into `[data-track]` markup. */
@@ -391,8 +425,45 @@ export const WaveformPlaylist = defineComponent({
 	/* The embedded player's callbacks, surfaced as emits (see "Lifecycle
 	 * emits" above). */
 	emits: ['load', 'play', 'pause', 'end', 'timeupdate', 'error', 'nexttrack', 'previoustrack'],
-	setup(props, { emit, expose }) {
+	setup(props, { emit, expose, attrs }) {
 		const container = ref<HTMLDivElement | null>(null);
+
+		/*
+		 * Host `class` handling.
+		 *
+		 * The playlist owns part of the host's class list — `waveform-playlist`,
+		 * `wp-hero-layout`, `wp-grid-layout`, `wp-density-compact`,
+		 * `wp-cover-top`, `wp-no-artist`, `wp-minimal` — added at construction
+		 * and removed by `destroy()`. If Vue owned the `class` attribute, a
+		 * class-only change — which rightly doesn't remount — would re-patch it
+		 * and strip those classes for good, breaking the layout.
+		 *
+		 * So the render function passes a class value frozen at setup
+		 * (`renderedClass`; SSR and hydration still carry the user's classes),
+		 * which Vue never re-patches because it never changes. The live
+		 * fall-through `class` (string, array or object — normalised the way
+		 * Vue would) is applied after each mount/update with `classList`,
+		 * touching only the tokens this component put there. Every other
+		 * attribute (`id`, `style`, listeners, `data-*`) is still forwarded.
+		 *
+		 * Chosen over mounting the playlist into an inner element (which would
+		 * leave Vue's element alone by construction) because that changes the
+		 * DOM users style: `.my-class.waveform-playlist` selectors stop
+		 * matching, and CSS variables set through `style` / `class` would land
+		 * on a parent, shadowed by the core's own `.waveform-playlist` defaults.
+		 */
+		const hostClass = () => normalizeClass(['wfp-host', attrs.class]);
+		const renderedClass = hostClass();
+		let appliedClasses = classTokens(renderedClass);
+		function applyHostClasses() {
+			const el = container.value;
+			if (!el) return;
+			const wanted = classTokens(hostClass());
+			syncHostClasses(el, appliedClasses, wanted);
+			appliedClasses = wanted;
+		}
+		onMounted(applyHostClasses);
+		onUpdated(applyHostClasses);
 		let instance: PlaylistInstance | null = null;
 		/* Monotonic token: every (re)mount bumps it; an in-flight async
 		 * import whose token is stale (superseded by a newer mount or by
@@ -570,7 +641,11 @@ export const WaveformPlaylist = defineComponent({
 			},
 		});
 
-		return () => h('div', { ref: container, class: 'wfp-host' }, renderTracks(props.tracks));
+		return () => {
+			const { class: _class, ...rest } = attrs;
+			/* `class` frozen at setup — see "Host `class` handling". */
+			return h('div', { ...rest, ref: container, class: renderedClass }, renderTracks(props.tracks));
+		};
 	},
 });
 

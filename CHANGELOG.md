@@ -40,6 +40,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   declaration — Vue treated them as fallthrough attributes and they never
   reached the playlist. They are now runtime props, forwarded and in the
   remount watcher.
+- Changing only the fall-through `class` no longer strips the playlist's
+  own host classes (`waveform-playlist`, `wp-hero-layout`, `wp-grid-layout`,
+  `wp-density-compact`, `wp-cover-top`, `wp-no-artist`, `wp-minimal`). A
+  class-only change (correctly) doesn't remount, so when Vue re-patched the
+  `class` attribute those were gone until some other prop changed —
+  hero/grid layouts collapsed and density/artist styling reverted. The
+  component now renders `class` once (server markup and hydration are
+  unchanged) and applies later changes with `classList`, adding and removing
+  only the user's tokens. To keep `class` out of Vue's patching it sets
+  `inheritAttrs: false` and forwards every other attribute (`id`, `style`,
+  listeners, `data-*`) itself — same result on the element. The DOM
+  structure is unchanged — the tracks and the playlist UI still live
+  directly in the one host `<div>`. (Mounting the playlist into an inner
+  element was considered and rejected: it would break
+  `.your-class.waveform-playlist` selectors and push CSS variables set via
+  `style` / `class` onto a parent, where the core's defaults shadow them.)
 
 ### Changed
 

@@ -47,9 +47,16 @@ class MockPlaylist {
 		const ui = document.createElement('div');
 		ui.className = 'wp-generated';
 		el.appendChild(ui);
+		/* Layout classes on the host itself (addOwnClass): recorded, skipped
+		 * when the author already set them, removed again by destroy(). */
+		const ownClasses = ['waveform-playlist', ...(opts.layout === 'hero' ? ['wp-hero-layout'] : [])].filter(
+			(c) => !el.classList.contains(c)
+		);
+		el.classList.add(...ownClasses);
 		this.destroy = vi.fn(() => {
 			lifecycle.push(`destroy:${n}`);
 			ui.remove();
+			el.classList.remove(...ownClasses);
 			trackEls.forEach((t) => (t.style.display = ''));
 		});
 		lifecycle.push(`construct:${n}`);
@@ -353,5 +360,59 @@ describe('WaveformPlaylist (Vue)', () => {
 		const el = wrapper.find('div.wfp-host').element;
 		expect(el.classList.contains('custom')).toBe(true);
 		expect(el.id).toBe('pl-1');
+	});
+
+	/* The playlist adds its layout classes to the host and a class-only
+	 * change doesn't remount — so if Vue re-patched the `class` attribute,
+	 * nothing would put them back and the layout would break. */
+	it('keeps the playlist\'s host classes when only the fall-through class changes', async () => {
+		const wrapper = mount(WaveformPlaylist, {
+			props: { tracks: tracksA, layout: 'hero' },
+			attrs: { class: 'first' },
+		});
+		await flushPromises();
+		const el = wrapper.find('div').element;
+		expect(el.classList.contains('wp-hero-layout')).toBe(true);
+
+		await wrapper.setProps({ class: { second: true } } as never);
+		await flushPromises();
+
+		expect(instances).toHaveLength(1); // no remount to paper over it
+		expect(el.className.split(' ').sort()).toEqual(
+			['second', 'waveform-playlist', 'wfp-host', 'wp-hero-layout'].sort()
+		);
+
+		await wrapper.setProps({ class: undefined } as never);
+		expect(el.className.split(' ').sort()).toEqual(['waveform-playlist', 'wfp-host', 'wp-hero-layout'].sort());
+	});
+
+	it('a remount after a class change still carries the current class', async () => {
+		const wrapper = mount(WaveformPlaylist, {
+			props: { tracks: tracksA, layout: 'hero' },
+			attrs: { class: 'first' },
+		});
+		await flushPromises();
+		await wrapper.setProps({ class: 'second' } as never);
+		await wrapper.setProps({ layout: 'list' });
+		await flushPromises();
+
+		const el = wrapper.find('div').element;
+		expect(instances).toHaveLength(2);
+		expect(instances[1].el).toBe(el);
+		expect(el.className.split(' ').sort()).toEqual(['second', 'waveform-playlist', 'wfp-host'].sort());
+	});
+
+	it('still forwards non-class attributes to the host', async () => {
+		const onClick = vi.fn();
+		const wrapper = mount(WaveformPlaylist, {
+			props: { tracks: tracksA },
+			attrs: { id: 'pl-1', 'data-x': '1', style: 'min-height: 200px', onClick },
+		});
+		const el = wrapper.find('div').element as HTMLDivElement;
+		expect(el.id).toBe('pl-1');
+		expect(el.dataset.x).toBe('1');
+		expect(el.style.minHeight).toBe('200px');
+		await wrapper.find('div').trigger('click');
+		expect(onClick).toHaveBeenCalledTimes(1);
 	});
 });
