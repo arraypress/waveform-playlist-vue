@@ -89,6 +89,7 @@ import type {
 	AudioPreload,
 	ButtonAlign,
 	ColorPreset,
+	WaveformPlayerOptions,
 	WaveformStyle,
 } from '@arraypress/waveform-player';
 import type {
@@ -164,6 +165,8 @@ function buildPlaylistOptions(p: Record<string, unknown>): Record<string, unknow
 	set('barWidth', p.barWidth);
 	set('barSpacing', p.barSpacing);
 	set('barRadius', p.barRadius);
+	set('waveformGradient', p.waveformGradient);
+	set('seekHandle', p.seekHandle);
 
 	/* Colours */
 	set('colorPreset', p.colorPreset);
@@ -184,6 +187,9 @@ function buildPlaylistOptions(p: Record<string, unknown>): Record<string, unknow
 	set('bpm', p.bpm);
 	set('buttonAlign', p.buttonAlign);
 	set('buttonStyle', p.buttonStyle);
+	set('buttonSize', p.buttonSize);
+	set('buttonRadius', p.buttonRadius);
+	set('artworkPosition', p.artworkPosition);
 
 	/* Accessibility */
 	set('accessibleSeek', p.accessibleSeek);
@@ -317,6 +323,13 @@ export const WaveformPlaylist = defineComponent({
 		barWidth: { type: Number, default: undefined },
 		barSpacing: { type: Number, default: undefined },
 		barRadius: { type: Number, default: undefined },
+		/** Gradient axis when a colour is an array of stops. */
+		waveformGradient: {
+			type: String as PropType<NonNullable<WaveformPlayerOptions['waveformGradient']>>,
+			default: undefined,
+		},
+		/** Draggable seek handle on the seekbar style. */
+		seekHandle: { type: Boolean, default: undefined },
 
 		// ── Colours (string, or string[] for gradients) ────────────────
 		colorPreset: { type: String as PropType<ColorPreset>, default: undefined },
@@ -337,6 +350,15 @@ export const WaveformPlaylist = defineComponent({
 		bpm: { type: Number, default: undefined },
 		buttonAlign: { type: String as PropType<ButtonAlign>, default: undefined },
 		buttonStyle: { type: String, default: undefined },
+		/** Play/pause button size: a number (px) or a CSS length string. */
+		buttonSize: { type: [Number, String] as PropType<number | string>, default: undefined },
+		/** Play/pause button corner radius: a number (px) or a CSS length. `0` = square. */
+		buttonRadius: { type: [Number, String] as PropType<number | string>, default: undefined },
+		/** Where the artwork renders: `'info'` (info row) or `'button'` (the play button). */
+		artworkPosition: {
+			type: String as PropType<NonNullable<WaveformPlayerOptions['artworkPosition']>>,
+			default: undefined,
+		},
 
 		// ── Accessibility ──────────────────────────────────────────────
 		accessibleSeek: { type: Boolean, default: undefined },
@@ -459,6 +481,8 @@ export const WaveformPlaylist = defineComponent({
 				props.barWidth,
 				props.barSpacing,
 				props.barRadius,
+				props.waveformGradient,
+				props.seekHandle,
 				props.colorPreset,
 				props.waveformColor,
 				props.progressColor,
@@ -473,6 +497,9 @@ export const WaveformPlaylist = defineComponent({
 				props.bpm,
 				props.buttonAlign,
 				props.buttonStyle,
+				props.buttonSize,
+				props.buttonRadius,
+				props.artworkPosition,
 				props.accessibleSeek,
 				props.seekLabel,
 				props.seekValueText,

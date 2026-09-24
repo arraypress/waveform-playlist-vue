@@ -128,6 +128,35 @@ describe('WaveformPlaylist (Vue)', () => {
 		});
 	});
 
+	it('forwards waveformGradient, seekHandle, buttonSize, buttonRadius, artworkPosition', async () => {
+		// Each needs a runtime `props` declaration — without one Vue treats it
+		// as a fallthrough attr and it never reaches the options builder.
+		mount(WaveformPlaylist, {
+			props: {
+				tracks: tracksA,
+				waveformGradient: 'diagonal',
+				seekHandle: true,
+				buttonSize: '4rem',
+				buttonRadius: 0,
+				artworkPosition: 'button',
+			},
+		});
+		await flushPromises();
+		const { opts } = instances[0];
+		expect(opts.waveformGradient).toBe('diagonal');
+		expect(opts.seekHandle).toBe(true);
+		expect(opts.buttonSize).toBe('4rem');
+		// 0 is a real value (a square button), not "unset".
+		expect(opts.buttonRadius).toBe(0);
+		expect(opts.artworkPosition).toBe('button');
+	});
+
+	it('forwards a numeric buttonSize as a number', async () => {
+		mount(WaveformPlaylist, { props: { tracks: tracksA, buttonSize: 48 } });
+		await flushPromises();
+		expect(instances[0].opts.buttonSize).toBe(48);
+	});
+
 	it('accepts layout="hero"', async () => {
 		mount(WaveformPlaylist, { props: { tracks: tracksA, layout: 'hero' } });
 		await flushPromises();

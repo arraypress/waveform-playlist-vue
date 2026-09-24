@@ -21,6 +21,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `index.d.ts` (1.8.0 declares them all); against an older core they fall
   back to the same 1.8.0 shapes instead of degrading to `unknown`.
 
+### Fixed
+
+- `waveformGradient`, `seekHandle`, `buttonSize`, `buttonRadius` and
+  `artworkPosition` reach the embedded player. All five are core player
+  options the props type inherited, but they had no runtime prop
+  declaration — Vue treated them as fallthrough attributes and they never
+  reached the playlist. They are now runtime props, forwarded and in the
+  remount watcher.
+
 ### Removed
 
 - The `audioMode` prop. The playlist always owns its audio, and an
