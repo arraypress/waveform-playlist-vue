@@ -16,9 +16,19 @@ import { flushPromises, mount } from '@vue/test-utils';
 /** Captures every constructed instance so assertions can inspect them. */
 const instances: MockPlaylist[] = [];
 
+/** Construct / destroy events in order, to assert destroy → construct. */
+const lifecycle: string[] = [];
+
+/**
+ * Models the library's DOM contract (playlist 1.8.0): parse the
+ * [data-track] children, hide them, and append generated UI; destroy()
+ * removes only what it generated and un-hides the tracks in place.
+ */
 class MockPlaylist {
 	el: HTMLElement;
 	opts: Record<string, unknown>;
+	/** `data-url` of each `[data-track]` parsed at construction. */
+	parsedUrls: string[];
 	selectTrack = vi.fn();
 	seekToChapter = vi.fn();
 	nextTrack = vi.fn();
@@ -26,10 +36,23 @@ class MockPlaylist {
 	getPlayer = vi.fn(() => null);
 	getCurrentTrackIndex = vi.fn(() => 0);
 	getTracks = vi.fn(() => []);
-	destroy = vi.fn();
+	destroy: ReturnType<typeof vi.fn>;
 	constructor(el: HTMLElement, opts: Record<string, unknown>) {
+		const n = instances.length;
 		this.el = el;
 		this.opts = opts;
+		const trackEls = Array.from(el.querySelectorAll<HTMLElement>('[data-track]'));
+		this.parsedUrls = trackEls.map((t) => t.dataset.url ?? '');
+		trackEls.forEach((t) => (t.style.display = 'none'));
+		const ui = document.createElement('div');
+		ui.className = 'wp-generated';
+		el.appendChild(ui);
+		this.destroy = vi.fn(() => {
+			lifecycle.push(`destroy:${n}`);
+			ui.remove();
+			trackEls.forEach((t) => (t.style.display = ''));
+		});
+		lifecycle.push(`construct:${n}`);
 		instances.push(this);
 	}
 }
@@ -48,6 +71,7 @@ const tracksA = [
 
 beforeEach(() => {
 	instances.length = 0;
+	lifecycle.length = 0;
 });
 
 describe('WaveformPlaylist (Vue)', () => {
@@ -268,6 +292,40 @@ describe('WaveformPlaylist (Vue)', () => {
 		expect(first.destroy).toHaveBeenCalledTimes(1);
 		expect(instances).toHaveLength(2);
 		expect(wrapper.find('[data-track]').attributes('data-url')).toBe('/c.mp3');
+	});
+
+	it('re-mounting on a prop change hands the new instance the rendered tracks', async () => {
+		// The library's destroy() used to wipe the host, taking the
+		// wrapper-rendered [data-track] children with it, so the rebuilt
+		// playlist was empty. Playlist 1.8.0 leaves them in place.
+		const wrapper = mount(WaveformPlaylist, { props: { tracks: tracksA, height: 60 } });
+		await flushPromises();
+
+		await wrapper.setProps({ height: 90 });
+		await flushPromises();
+
+		expect(lifecycle).toEqual(['construct:0', 'destroy:0', 'construct:1']);
+		expect(instances[1].opts.height).toBe(90);
+		expect(instances[1].parsedUrls).toEqual(['/a.mp3', '/b.mp3']);
+
+		const host = wrapper.element as HTMLElement;
+		expect(host.querySelectorAll('[data-track]')).toHaveLength(2);
+		// Only the live instance's UI remains.
+		expect(host.querySelectorAll('.wp-generated')).toHaveLength(1);
+	});
+
+	it('re-mounting on a tracks change hands the new instance the new tracks', async () => {
+		const wrapper = mount(WaveformPlaylist, { props: { tracks: tracksA } });
+		await flushPromises();
+
+		await wrapper.setProps({ tracks: [...tracksA, { url: '/c.mp3', title: 'Track C' }] });
+		await flushPromises();
+
+		expect(lifecycle).toEqual(['construct:0', 'destroy:0', 'construct:1']);
+		expect(instances[1].parsedUrls).toEqual(['/a.mp3', '/b.mp3', '/c.mp3']);
+		const host = wrapper.element as HTMLElement;
+		expect(host.querySelectorAll('[data-track]')).toHaveLength(3);
+		expect(host.querySelectorAll('.wp-generated')).toHaveLength(1);
 	});
 
 	it('exposes the imperative navigation API via the component ref', async () => {
