@@ -41,6 +41,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reached the playlist. They are now runtime props, forwarded and in the
   remount watcher.
 
+### Changed
+
+- **Requires `@arraypress/waveform-playlist@^1.8.0`** (was `^1.7.2`) —
+  the upcoming release that makes these props work. Before it, the
+  playlist ignored the constructor options this wrapper passes
+  (`expandChapters`, `showDuration`, `showPlayState`, `showChapterMarkers`,
+  `chapterMarkerColor`), leaked `layout` into the embedded player (fixed
+  in 1.7.4), overwrote the player callbacks the new emits ride on, never
+  read `data-waveform`, and its `destroy()` wiped the rendered tracks, so
+  any prop change re-mounted an empty playlist. With 1.8.0 a re-mount
+  keeps the tracks (now covered by a test).
+- **Requires `@arraypress/waveform-player@^1.24.5`** (was `^1.23.0`), the
+  playlist core's own floor.
+
 ### Removed
 
 - The `audioMode` prop. The playlist always owns its audio, and an
