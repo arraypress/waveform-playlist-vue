@@ -112,6 +112,12 @@ export interface WaveformPlaylistTrackInput {
 	 * `data-markers`, which the playlist parses for this track.
 	 */
 	markers?: WaveformPlaylistMarker[];
+	/**
+	 * Pre-computed peaks, so the player skips decoding this track's audio.
+	 * An array is JSON-encoded into `data-waveform`; a string (e.g. a
+	 * `.json` peaks URL) is passed through for the player to resolve.
+	 */
+	waveform?: number[] | string;
 	/** Chapters rendered as `[data-chapter]` children of this track. */
 	chapters?: WaveformPlaylistChapterInput[];
 }

@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Playlist 1.8.0 runs the embedded player's callbacks after its own
   handling (before, it overwrote them, which is why this wrapper offered
   none). `emit` is stable, so a new listener never re-mounts the playlist.
+- Per-track `waveform` peaks on `WaveformPlaylistTrackInput`
+  (`number[] | string`), rendered as the track's `data-waveform`: an array
+  is JSON-encoded, a string (e.g. a `.json` peaks URL) passed through.
+  With peaks the player skips decoding that track's audio. Playlist 1.8.0
+  is the first version that reads `data-waveform`.
 
 ### Fixed
 

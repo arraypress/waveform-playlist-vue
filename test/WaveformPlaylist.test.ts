@@ -69,6 +69,25 @@ describe('WaveformPlaylist (Vue)', () => {
 		expect(chapter.text()).toBe('Verse');
 	});
 
+	it('renders per-track waveform peaks as data-waveform (JSON array, or a URL verbatim)', () => {
+		const peaks = [0.1, 0.5, 0.9];
+		const wrapper = mount(WaveformPlaylist, {
+			props: {
+				tracks: [
+					{ url: '/a.mp3', waveform: peaks },
+					{ url: '/b.mp3', waveform: '/peaks/b.json' },
+					{ url: '/c.mp3' },
+				],
+			},
+		});
+		const [a, b, c] = Array.from(
+			(wrapper.element as HTMLElement).querySelectorAll('[data-track]')
+		);
+		expect(a.getAttribute('data-waveform')).toBe(JSON.stringify(peaks));
+		expect(b.getAttribute('data-waveform')).toBe('/peaks/b.json');
+		expect(c.hasAttribute('data-waveform')).toBe(false);
+	});
+
 	it('constructs the core instance over the host', async () => {
 		const wrapper = mount(WaveformPlaylist, { props: { tracks: tracksA } });
 		await flushPromises();
