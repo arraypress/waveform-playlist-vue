@@ -129,9 +129,10 @@ export interface WaveformPlaylistTrackInput {
  *      behaviour option from the core `WaveformPlayerOptions`, minus the
  *      per-track content fields (`url`, `title`, `artist`, `artwork`,
  *      `album`, `markers`, `waveform`) which come from `tracks`, the
- *      `style`/`src` aliases, the player's `layout` (overridden above), and
- *      the lifecycle callbacks (the playlist owns the embedded player's
- *      callbacks internally, so they are not surfaced as emits).
+ *      `style`/`src` aliases, the player's `layout` (overridden above),
+ *      `audioMode` (the playlist always owns its audio), and the lifecycle
+ *      callbacks (the playlist owns the embedded player's callbacks
+ *      internally, so they are not surfaced as emits).
  *   3. **Vue extra** — the required `tracks` array.
  *
  * `class`, `style`, and `id` are intentionally not listed: Vue's
@@ -164,6 +165,7 @@ export interface WaveformPlaylistProps
 			| 'album'
 			| 'markers'
 			| 'waveform'
+			| 'audioMode'
 			| 'onLoad'
 			| 'onPlay'
 			| 'onPause'

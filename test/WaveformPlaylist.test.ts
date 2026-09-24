@@ -103,6 +103,18 @@ describe('WaveformPlaylist (Vue)', () => {
 		});
 	});
 
+	it('does not forward audioMode (the playlist always owns its audio)', async () => {
+		// An `'external'` player inside a playlist dispatches request-play
+		// events nobody answers; playlist 1.8.0 ignores the option, and the
+		// wrapper no longer declares or forwards it.
+		mount(WaveformPlaylist, {
+			props: { tracks: tracksA },
+			attrs: { audioMode: 'external' },
+		});
+		await flushPromises();
+		expect('audioMode' in instances[0].opts).toBe(false);
+	});
+
 	it('omits absent boolean props so the core defaults win', async () => {
 		mount(WaveformPlaylist, { props: { tracks: tracksA } });
 		await flushPromises();

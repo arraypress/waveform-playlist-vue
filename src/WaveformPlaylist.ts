@@ -86,7 +86,6 @@ import {
 import type { WaveformPlaylist as WaveformPlaylistInstance } from '@arraypress/waveform-playlist';
 import type {
 	AudioCrossOrigin,
-	AudioMode,
 	AudioPreload,
 	ButtonAlign,
 	ColorPreset,
@@ -138,8 +137,10 @@ function buildPlaylistOptions(p: Record<string, unknown>): Record<string, unknow
 
 	/* Pass-through player options — forwarded to the embedded player the
 	 * playlist drives. Per-track content (url/title/artist/artwork/album/
-	 * markers/waveform) is NOT here; it comes from the rendered markup. */
-	set('audioMode', p.audioMode);
+	 * markers/waveform) is NOT here; it comes from the rendered markup.
+	 * `audioMode` is deliberately absent: the playlist always owns its
+	 * audio (1.8.0 ignores the option), and an `'external'` embedded player
+	 * would dispatch request-play events nobody answers. */
 	set('preload', p.preload);
 	set('crossOrigin', p.crossOrigin);
 
@@ -280,7 +281,7 @@ export const WaveformPlaylist = defineComponent({
 		showPlayState: { type: Boolean, default: undefined },
 
 		// ── Audio source behaviour (forwarded to the embedded player) ──
-		audioMode: { type: String as PropType<AudioMode>, default: undefined },
+		// `audioMode` is not a prop: the playlist always owns its audio.
 		preload: { type: String as PropType<AudioPreload>, default: undefined },
 		crossOrigin: { type: String as PropType<AudioCrossOrigin>, default: undefined },
 
@@ -419,7 +420,6 @@ export const WaveformPlaylist = defineComponent({
 				props.showChapterMarkers,
 				props.chapterMarkerColor,
 				props.showPlayState,
-				props.audioMode,
 				props.preload,
 				props.crossOrigin,
 				props.waveformStyle,

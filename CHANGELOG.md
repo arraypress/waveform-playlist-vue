@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Removed
+
+- The `audioMode` prop. The playlist always owns its audio, and an
+  `'external'` embedded player dispatches request-play events nobody
+  answers — a playlist that never plays. It was forwarded to the
+  constructor; `@arraypress/waveform-playlist@1.8.0` ignores it, and the
+  wrapper no longer declares or forwards it.
+
 ## [0.4.0] — 2026-08-07
 
 ### Added
