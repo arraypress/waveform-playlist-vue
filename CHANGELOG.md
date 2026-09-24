@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `WaveformPlaylistLayoutProps`. Types come from the playlist core's
   `index.d.ts` (1.8.0 declares them all); against an older core they fall
   back to the same 1.8.0 shapes instead of degrading to `unknown`.
+- Lifecycle emits — `load`, `play`, `pause`, `end`, `timeupdate`,
+  `error`, `nexttrack`, `previoustrack` — with the core player's
+  arguments, the same idiom as `@arraypress/waveform-player-vue`.
+  Playlist 1.8.0 runs the embedded player's callbacks after its own
+  handling (before, it overwrote them, which is why this wrapper offered
+  none). `emit` is stable, so a new listener never re-mounts the playlist.
 
 ### Fixed
 

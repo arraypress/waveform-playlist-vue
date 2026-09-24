@@ -190,6 +190,48 @@ describe('WaveformPlaylist (Vue)', () => {
 		expect(instances[0].opts.showDuration).toBe(true);
 	});
 
+	it('emits the player lifecycle events with the core arguments', async () => {
+		// The playlist (1.8.0+) runs each forwarded callback after its own
+		// handling; the wrapper surfaces them as emits.
+		const wrapper = mount(WaveformPlaylist, { props: { tracks: tracksA } });
+		await flushPromises();
+		const call = (name: string, ...args: unknown[]) =>
+			(instances[0].opts[name] as (...a: unknown[]) => void)(...args);
+
+		call('onLoad', 'player');
+		call('onPlay', 'player');
+		call('onPause', 'player');
+		call('onEnd', 'player');
+		call('onTimeUpdate', 1.5, 30, 'player');
+		call('onError', 'boom', 'player');
+		call('onNextTrack', 'player');
+		call('onPreviousTrack', 'player');
+
+		expect(wrapper.emitted('load')).toEqual([['player']]);
+		expect(wrapper.emitted('play')).toEqual([['player']]);
+		expect(wrapper.emitted('pause')).toEqual([['player']]);
+		expect(wrapper.emitted('end')).toEqual([['player']]);
+		expect(wrapper.emitted('timeupdate')).toEqual([[1.5, 30, 'player']]);
+		expect(wrapper.emitted('error')).toEqual([['boom', 'player']]);
+		expect(wrapper.emitted('nexttrack')).toEqual([['player']]);
+		expect(wrapper.emitted('previoustrack')).toEqual([['player']]);
+	});
+
+	it('reaches a swapped listener without re-mounting', async () => {
+		const first = vi.fn();
+		const second = vi.fn();
+		const wrapper = mount(WaveformPlaylist, { props: { tracks: tracksA, onPlay: first } });
+		await flushPromises();
+
+		await wrapper.setProps({ onPlay: second });
+		await flushPromises();
+		expect(instances).toHaveLength(1);
+
+		(instances[0].opts.onPlay as (p: unknown) => void)('player');
+		expect(first).not.toHaveBeenCalled();
+		expect(second).toHaveBeenCalledWith('player');
+	});
+
 	it('destroys the instance on unmount', async () => {
 		const wrapper = mount(WaveformPlaylist, { props: { tracks: tracksA } });
 		await flushPromises();

@@ -184,9 +184,11 @@ export interface WaveformPlaylistLayoutProps {
  *      per-track content fields (`url`, `title`, `artist`, `artwork`,
  *      `album`, `markers`, `waveform`) which come from `tracks`, the
  *      `style`/`src` aliases, the player's `layout` (overridden above),
- *      `audioMode` (the playlist always owns its audio), and the lifecycle
- *      callbacks (the playlist owns the embedded player's callbacks
- *      internally, so they are not surfaced as emits).
+ *      `audioMode` (the playlist always owns its audio), and the player
+ *      callbacks — those surface as emits instead (`@load`, `@play`,
+ *      `@pause`, `@end`, `@timeupdate`, `@error`, `@nexttrack`,
+ *      `@previoustrack`), which the playlist (1.8.0+) fires after its own
+ *      handling.
  *   3. **Vue extra** — the required `tracks` array.
  *
  * `class`, `style`, and `id` are intentionally not listed: Vue's
@@ -227,6 +229,8 @@ export interface WaveformPlaylistProps
 			| 'onEnd'
 			| 'onError'
 			| 'onTimeUpdate'
+			| 'onNextTrack'
+			| 'onPreviousTrack'
 		> {
 	/**
 	 * The playlist's tracks. Each is rendered into the `[data-track]`

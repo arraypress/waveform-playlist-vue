@@ -25,16 +25,15 @@
  * attribute drives the library's *global* auto-init, which would
  * double-mount on top of the instance we create explicitly.
  *
- * ## No lifecycle emits
+ * ## Lifecycle emits
  *
- * Unlike `@arraypress/waveform-player-vue`, this wrapper exposes no
- * playback emits. The playlist owns the embedded player's lifecycle
- * callbacks internally — it overwrites `onPlay` / `onPause` / `onEnd` /
- * `onTimeUpdate` on every track it loads to drive continuous playback,
- * the play-state indicator and chapter tracking. Forwarding them as emits
- * would yield events that silently never fire, so (matching the React
- * wrapper) they are deliberately omitted. Use the imperative `ref` and the
- * embedded player from `getPlayer()` if you need to observe playback.
+ * The embedded player's callbacks surface as emits — `@load`, `@play`,
+ * `@pause`, `@end`, `@timeupdate`, `@error`, `@nexttrack`,
+ * `@previoustrack` — with the core's arguments, the same idiom as
+ * `@arraypress/waveform-player-vue`. The playlist (1.8.0+) runs each after
+ * its own handling (earlier versions overwrote them, which is why this
+ * wrapper used to offer none). `emit` is stable, so swapping a listener
+ * never re-mounts the playlist.
  *
  * ## Identity-prop re-mount
  *
@@ -85,6 +84,7 @@ import {
 // component export. This is the core library's playlist class type.
 import type { WaveformPlaylist as WaveformPlaylistInstance } from '@arraypress/waveform-playlist';
 import type {
+	WaveformPlayer as WaveformPlayerInstance,
 	AudioCrossOrigin,
 	AudioPreload,
 	ButtonAlign,
@@ -385,7 +385,10 @@ export const WaveformPlaylist = defineComponent({
 		playIcon: { type: String, default: undefined },
 		pauseIcon: { type: String, default: undefined },
 	},
-	setup(props, { expose }) {
+	/* The embedded player's callbacks, surfaced as emits (see "Lifecycle
+	 * emits" above). */
+	emits: ['load', 'play', 'pause', 'end', 'timeupdate', 'error', 'nexttrack', 'previoustrack'],
+	setup(props, { emit, expose }) {
 		const container = ref<HTMLDivElement | null>(null);
 		let instance: PlaylistInstance | null = null;
 		/* Monotonic token: every (re)mount bumps it; an in-flight async
@@ -428,11 +431,22 @@ export const WaveformPlaylist = defineComponent({
 						return;
 					}
 
+					const opts = buildPlaylistOptions(props as unknown as Record<string, unknown>);
+					/* Wire callbacks to emits. The playlist chains each after its
+					 * own handling; `emit` is stable, so events always reach the
+					 * latest listeners without re-mounting. */
+					opts.onLoad = (i: WaveformPlayerInstance) => emit('load', i);
+					opts.onPlay = (i: WaveformPlayerInstance) => emit('play', i);
+					opts.onPause = (i: WaveformPlayerInstance) => emit('pause', i);
+					opts.onEnd = (i: WaveformPlayerInstance) => emit('end', i);
+					opts.onTimeUpdate = (c: number, d: number, i: WaveformPlayerInstance) =>
+						emit('timeupdate', c, d, i);
+					opts.onError = (e: unknown, i: WaveformPlayerInstance) => emit('error', e, i);
+					opts.onNextTrack = (i: WaveformPlayerInstance) => emit('nexttrack', i);
+					opts.onPreviousTrack = (i: WaveformPlayerInstance) => emit('previoustrack', i);
+
 					try {
-						instance = new Ctor(
-							target,
-							buildPlaylistOptions(props as unknown as Record<string, unknown>)
-						);
+						instance = new Ctor(target, opts);
 					} catch (err) {
 						/* The most common cause is a missing core player —
 						 * `window.WaveformPlayer` must be present before the
