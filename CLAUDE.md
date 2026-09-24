@@ -30,7 +30,7 @@ an inline union, export a named one there first — that's a core edit.
 - Types derive from **both** cores — `waveform-playlist` owns playlist options,
   `waveform-player` owns the visualisation options forwarded to embedded players.
 - Forward a new *player* option only if the playlist should pass it to its embedded
-  players — usually yes (`preload`, `audioMode`, `waveformStyle`, `height` all do).
+  players — usually yes (`preload`, `waveformStyle`, `height` all do) — never `audioMode`, which the playlist ignores since 1.8.0 (it always owns its audio).
 - Add a test in `test/WaveformPlaylist.test.ts` + a `CHANGELOG.md` entry.
 
 ## History

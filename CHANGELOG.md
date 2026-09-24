@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-09-24
+
 ### Added
 
 - The hero and grid layouts: `layout` now accepts `'hero'` and `'grid'`
