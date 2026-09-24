@@ -117,14 +117,68 @@ export interface WaveformPlaylistTrackInput {
 }
 
 /**
+ * A playlist option's type, read from the installed playlist core.
+ *
+ * `@arraypress/waveform-playlist` before 1.8.0 declared only seven of its
+ * options; the hero / grid ones below reached its `[option: string]: unknown`
+ * index signature, which would type these props as `unknown`. For such a key
+ * the `Fallback` — copied from 1.8.0's `index.d.ts` — is used instead. With
+ * the peer range (`^1.8.0`) installed every key is declared, so this is
+ * exactly the core's own type and the fallback is inert.
+ */
+type PlaylistOption<K extends string, Fallback> =
+	unknown extends WaveformPlaylistOptions[K] ? Fallback : WaveformPlaylistOptions[K];
+
+/**
+ * The playlist's layout options — `layout` and the hero / grid / density
+ * options that ship with it. Typed from the playlist core (see
+ * {@link PlaylistOption}); `layout` overrides the player's own `layout`.
+ * The component's runtime `PropType`s derive from these, since the core
+ * exports no named unions for them.
+ */
+export interface WaveformPlaylistLayoutProps {
+	/**
+	 * Playlist layout. `'list'` shows the full track list; `'minimal'` a
+	 * compact button switcher; `'hero'` a now-playing unit (cover +
+	 * waveform) over a track queue; `'grid'` a cover-art grid with a
+	 * now-playing bar. (The union is written out so `'hero'` / `'grid'`
+	 * typecheck against a pre-1.8.0 core; with 1.8.0 it equals the core's.)
+	 * @default 'list'
+	 */
+	layout?: WaveformPlaylistOptions['layout'] | 'hero' | 'grid';
+	/**
+	 * Show the now-playing / per-row artist. Turn off for single-artist
+	 * albums where it would only repeat.
+	 * @default true
+	 */
+	showArtist?: PlaylistOption<'showArtist', boolean>;
+	/**
+	 * Hero cover size in px. Defaults to the waveform height plus the time
+	 * row, so the cover sits flush with the waveform column.
+	 */
+	coverSize?: PlaylistOption<'coverSize', number>;
+	/** Hero queue thumbnail / grid cover size in px. Defaults to the CSS value. */
+	thumbnailSize?: PlaylistOption<'thumbnailSize', number>;
+	/** Row density for every layout. @default 'comfortable' */
+	density?: PlaylistOption<'density', 'comfortable' | 'compact'>;
+	/** Hero / grid cover position relative to the waveform. @default 'left' */
+	coverPosition?: PlaylistOption<'coverPosition', 'left' | 'top'>;
+	/** Grid layout: now-playing bar above or below the covers. @default 'bottom' */
+	barPosition?: PlaylistOption<'barPosition', 'top' | 'bottom'>;
+}
+
+/**
  * The option surface accepted by `<WaveformPlaylist>` as props.
  *
  * Combines three groups:
  *
  *   1. **Playlist options** — `continuous`, `expandChapters`,
  *      `showDuration`, `showChapterMarkers`, `chapterMarkerColor`,
- *      `showPlayState`, plus a playlist-specific `layout`
- *      (`'list' | 'minimal'`, which overrides the player's own `layout`).
+ *      `showPlayState`, plus the layout options
+ *      ({@link WaveformPlaylistLayoutProps}: `layout` — `'list' |
+ *      'minimal' | 'hero' | 'grid'`, overriding the player's own `layout` —
+ *      `showArtist`, `coverSize`, `thumbnailSize`, `density`,
+ *      `coverPosition`, `barPosition`).
  *   2. **Pass-through player options** — every visualisation / colour /
  *      behaviour option from the core `WaveformPlayerOptions`, minus the
  *      per-track content fields (`url`, `title`, `artist`, `artwork`,
@@ -144,7 +198,8 @@ export interface WaveformPlaylistTrackInput {
  * anything the cores add in future is exposed here without a manual edit.
  */
 export interface WaveformPlaylistProps
-	extends Pick<
+	extends WaveformPlaylistLayoutProps,
+		Pick<
 			WaveformPlaylistOptions,
 			| 'continuous'
 			| 'expandChapters'
@@ -180,13 +235,6 @@ export interface WaveformPlaylistProps
 	 * skips init when there are no tracks).
 	 */
 	tracks: WaveformPlaylistTrackInput[];
-
-	/**
-	 * Playlist layout. `'list'` shows the full track list; `'minimal'`
-	 * shows a compact button switcher.
-	 * @default 'list'
-	 */
-	layout?: 'list' | 'minimal';
 }
 
 /**

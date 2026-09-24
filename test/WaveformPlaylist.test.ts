@@ -103,6 +103,37 @@ describe('WaveformPlaylist (Vue)', () => {
 		});
 	});
 
+	it('forwards the hero / grid layouts and their options', async () => {
+		mount(WaveformPlaylist, {
+			props: {
+				tracks: tracksA,
+				layout: 'grid',
+				showArtist: false,
+				coverSize: 120,
+				thumbnailSize: 64,
+				density: 'compact',
+				coverPosition: 'top',
+				barPosition: 'top',
+			},
+		});
+		await flushPromises();
+		expect(instances[0].opts).toMatchObject({
+			layout: 'grid',
+			showArtist: false,
+			coverSize: 120,
+			thumbnailSize: 64,
+			density: 'compact',
+			coverPosition: 'top',
+			barPosition: 'top',
+		});
+	});
+
+	it('accepts layout="hero"', async () => {
+		mount(WaveformPlaylist, { props: { tracks: tracksA, layout: 'hero' } });
+		await flushPromises();
+		expect(instances[0].opts.layout).toBe('hero');
+	});
+
 	it('does not forward audioMode (the playlist always owns its audio)', async () => {
 		// An `'external'` player inside a playlist dispatches request-play
 		// events nobody answers; playlist 1.8.0 ignores the option, and the

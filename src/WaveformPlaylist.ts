@@ -93,9 +93,16 @@ import type {
 } from '@arraypress/waveform-player';
 import type {
 	WaveformPlaylistChapterInput,
+	WaveformPlaylistLayoutProps,
 	WaveformPlaylistTrack,
 	WaveformPlaylistTrackInput,
 } from './types';
+
+/** A layout prop's value type, for a runtime `PropType` (the core exports
+ *  no named unions for these, so they derive from the wrapper's types). */
+type LayoutProp<K extends keyof WaveformPlaylistLayoutProps> = NonNullable<
+	WaveformPlaylistLayoutProps[K]
+>;
 
 /** Minimal structural view of the methods the wrapper calls. */
 type PlaylistInstance = {
@@ -134,6 +141,12 @@ function buildPlaylistOptions(p: Record<string, unknown>): Record<string, unknow
 	set('showChapterMarkers', p.showChapterMarkers);
 	set('chapterMarkerColor', p.chapterMarkerColor);
 	set('showPlayState', p.showPlayState);
+	set('showArtist', p.showArtist);
+	set('coverSize', p.coverSize);
+	set('thumbnailSize', p.thumbnailSize);
+	set('density', p.density);
+	set('coverPosition', p.coverPosition);
+	set('barPosition', p.barPosition);
 
 	/* Pass-through player options — forwarded to the embedded player the
 	 * playlist drives. Per-track content (url/title/artist/artwork/album/
@@ -265,8 +278,8 @@ export const WaveformPlaylist = defineComponent({
 		},
 
 		// ── Playlist layout + options ──────────────────────────────────
-		/** Playlist layout: `'list'` (full list) or `'minimal'` (switcher). */
-		layout: { type: String as PropType<'list' | 'minimal'>, default: undefined },
+		/** Playlist layout: `'list'`, `'minimal'`, `'hero'` or `'grid'`. */
+		layout: { type: String as PropType<LayoutProp<'layout'>>, default: undefined },
 		/** Auto-advance to the next track when one ends. */
 		continuous: { type: Boolean, default: undefined },
 		/** Show chapters under each track. */
@@ -279,6 +292,18 @@ export const WaveformPlaylist = defineComponent({
 		chapterMarkerColor: { type: String, default: undefined },
 		/** Show a play/pause icon on the active track artwork. */
 		showPlayState: { type: Boolean, default: undefined },
+		/** Show the now-playing / per-row artist. */
+		showArtist: { type: Boolean, default: undefined },
+		/** Hero cover size in px. */
+		coverSize: { type: Number, default: undefined },
+		/** Hero queue thumbnail / grid cover size in px. */
+		thumbnailSize: { type: Number, default: undefined },
+		/** Row density: `'comfortable'` or `'compact'`. */
+		density: { type: String as PropType<LayoutProp<'density'>>, default: undefined },
+		/** Hero / grid cover position: `'left'` or `'top'`. */
+		coverPosition: { type: String as PropType<LayoutProp<'coverPosition'>>, default: undefined },
+		/** Grid now-playing bar position: `'top'` or `'bottom'`. */
+		barPosition: { type: String as PropType<LayoutProp<'barPosition'>>, default: undefined },
 
 		// ── Audio source behaviour (forwarded to the embedded player) ──
 		// `audioMode` is not a prop: the playlist always owns its audio.
@@ -420,6 +445,12 @@ export const WaveformPlaylist = defineComponent({
 				props.showChapterMarkers,
 				props.chapterMarkerColor,
 				props.showPlayState,
+				props.showArtist,
+				props.coverSize,
+				props.thumbnailSize,
+				props.density,
+				props.coverPosition,
+				props.barPosition,
 				props.preload,
 				props.crossOrigin,
 				props.waveformStyle,

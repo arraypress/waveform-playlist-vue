@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The hero and grid layouts: `layout` now accepts `'hero'` and `'grid'`
+  alongside `'list'` / `'minimal'` (both the runtime prop and the type
+  said `'list' | 'minimal'` although both ship in the core), and their
+  options are runtime props, forwarded to the playlist and in the remount
+  watcher: `showArtist`, `coverSize`, `thumbnailSize`, `density`
+  (`'comfortable' | 'compact'`), `coverPosition` (`'left' | 'top'`) and
+  `barPosition` (`'top' | 'bottom'`). Exported as
+  `WaveformPlaylistLayoutProps`. Types come from the playlist core's
+  `index.d.ts` (1.8.0 declares them all); against an older core they fall
+  back to the same 1.8.0 shapes instead of degrading to `unknown`.
+
 ### Removed
 
 - The `audioMode` prop. The playlist always owns its audio, and an
